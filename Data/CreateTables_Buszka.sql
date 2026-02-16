@@ -31,17 +31,28 @@ create table AppUser
 );
 GO
 
+/*
+alter table AppUser
+    NOCHECK CONSTRAINT CK_AppUser_UserRole;
+
+alter table AppUser
+    CHECK CONSTRAINT CK_AppUser_UserRole;
+
+GO
+*/
 create table Student
 (
     StudentID int identity(1,1) 
         CONSTRAINT PK_Student primary key
         CONSTRAINT FK_Student_AppUser foreign key references AppUser(AppUserID),
-    TotalCreteditsCompleted int not null
+    TotalCreditsCompleted int not null --cretisComplited += semesterCredits
         CONSTRAINT DF_Student_CreditsCompleted default 0,
-    GraduationYear NVARCHAR(25) not null,
+    GraduationSemesterYear NVARCHAR(25) not null,
     OverallGPA decimal(3,2) not null
         CONSTRAINT DF_Student_OverallGPA default 0.00,
     MajorGPA decimal(3,2) not null
         CONSTRAINT DF_Student_MajorGPA default 0.00
 );
 GO
+
+
