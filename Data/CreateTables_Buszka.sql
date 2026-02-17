@@ -6,6 +6,8 @@ use MIST460_RDB_Buszka
 GO
 
 -- Order matters (Why?)
+IF OBJECT_ID('RegistrationSection') IS NOT NULL DROP TABLE RegistrationSection;
+IF OBJECT_ID('Registration') IS NOT NULL DROP TABLE Registration;
 IF OBJECT_ID('Section') IS NOT NULL DROP TABLE Section;
 IF OBJECT_ID('Instructor') IS NOT NULL DROP TABLE Instructor; 
 IF OBJECT_ID('CoursePrereq') IS NOT NULL DROP TABLE CoursePrereq;
@@ -17,9 +19,7 @@ IF OBJECT_ID('Student')        IS NOT NULL DROP TABLE Student;
 IF OBJECT_ID('AppUser')        IS NOT NULL DROP TABLE AppUser;
 
 
--- create CoursePrerequisite table
--- create Registration
--- create RegistrationSection
+
 
 
 GO
@@ -129,6 +129,7 @@ CREATE TABLE Section (
 );
 GO
 
+
 CREATE TABLE CoursePrereq
 (
     CoursePrereqID INT IDENTITY(1,1) CONSTRAINT PK_CoursePrereq PRIMARY KEY,
@@ -154,6 +155,46 @@ CREATE TABLE CoursePrereq
 GO
 
 
+CREATE TABLE Registration
+(
+    RegistrationID   INT IDENTITY(1,1) CONSTRAINT PK_Registration PRIMARY KEY,
+    StudentID        INT NOT NULL,
+    RegistrationDate DATETIME2(0) NOT NULL CONSTRAINT DF_Registration_Date DEFAULT (SYSUTCDATETIME()),
+    Semester         NVARCHAR(20) NOT NULL,
+    [Year]           INT NOT NULL,
+
+    CONSTRAINT FK_Registration_Student
+        FOREIGN KEY (StudentID)
+        REFERENCES Student(StudentID),
+
+    CONSTRAINT UQ_Registration_Student_Term UNIQUE (StudentID, Semester, [Year])
+);
+GO
+
+CREATE TABLE RegistrationSection
+(
+    RegistrationSectionID INT IDENTITY(1,1) CONSTRAINT PK_RegistrationSection PRIMARY KEY,
+    RegistrationID        INT NOT NULL,
+    SectionID             INT NOT NULL,
+
+    LetterGrade           NVARCHAR(2) NULL,   -- typically NULL until completed
+    StudentRating         INT NULL,            -- 1 to 5, NULL if not rated
+    StudentComments       NVARCHAR(1000) NULL,
+
+    CONSTRAINT FK_RegSection_Registration
+        FOREIGN KEY (RegistrationID)
+        REFERENCES Registration(RegistrationID)
+        ON DELETE CASCADE,
+
+    CONSTRAINT FK_RegSection_Section
+        FOREIGN KEY (SectionID)
+        REFERENCES Section(SectionID),
+
+    CONSTRAINT UQ_RegSection UNIQUE (RegistrationID, SectionID),
+
+    CONSTRAINT CK_RegSection_Rating CHECK (StudentRating IS NULL OR (StudentRating BETWEEN 1 AND 5))
+);
+GO
 
 
 
