@@ -127,6 +127,33 @@ CREATE TABLE Section (
 );
 GO
 
+CREATE TABLE CoursePrereq
+(
+    CoursePrereqID INT IDENTITY(1,1) CONSTRAINT PK_CoursePrereq PRIMARY KEY,
+
+    CourseID INT NOT NULL,
+
+    PrereqCourseID INT NOT NULL,
+
+    MinGrade NVARCHAR(2) NOT NULL,
+
+    CONSTRAINT FK_CoursePrereq_Course
+        FOREIGN KEY (CourseID)
+        REFERENCES Course(CourseID),
+
+    CONSTRAINT FK_CoursePrereq_PrereqCourse
+        FOREIGN KEY (PrereqCourseID)
+        REFERENCES Course(CourseID),
+
+    CONSTRAINT UQ_CoursePrereq UNIQUE (CourseID, PrereqCourseID),
+
+    CONSTRAINT CK_CoursePrereq_NotSelf CHECK (CourseID <> PrereqCourseID)
+);
+GO
+
+
+
+
 
 /*
 use MIST460_RDB_Buszka
