@@ -7,13 +7,15 @@ GO
 
 -- Order matters (Why?)
 IF OBJECT_ID('Section') IS NOT NULL DROP TABLE Section;
-IF OBJECT_ID('Instructor') IS NOT NULL DROP TABLE Instructor;
+IF OBJECT_ID('Instructor') IS NOT NULL DROP TABLE Instructor; 
+IF OBJECT_ID('CoursePrereq') IS NOT NULL DROP TABLE CoursePrereq;
 IF OBJECT_ID('Course')         IS NOT NULL DROP TABLE Course;
 IF OBJECT_ID('Major')         IS NOT NULL DROP TABLE Major;
 IF OBJECT_ID('Alum')           IS NOT NULL DROP TABLE Alum;
 IF OBJECT_ID('Advisor')     IS NOT NULL DROP TABLE Advisor;
 IF OBJECT_ID('Student')        IS NOT NULL DROP TABLE Student;
 IF OBJECT_ID('AppUser')        IS NOT NULL DROP TABLE AppUser;
+
 
 -- create CoursePrerequisite table
 -- create Registration
@@ -155,58 +157,3 @@ GO
 
 
 
-/*
-use MIST460_RDB_Buszka
-GO
-
---Drop tables if they exist to avoid errors when running the script multiple times
-if object_id('Student') is not null
-    drop table Student
-
-if object_id('AppUser') is not null
-    drop table AppUser
-
-
-
-GO
-
-create table AppUser
-(
-    AppUserID int identity(1,1) 
-        CONSTRAINT PK_AppUser primary key,
-    FirstName NVARCHAR(50) not null,
-    LastName NVARCHAR(50) not null,
-    Email VARCHAR(100) not null,
-        CONSTRAINT UK_AppUser_Email UNIQUE(Email),
-    PhoneNumber NVARCHAR(20) null,
-    PasswordHash VARBINARY(255) not null,
-    UserRole NVARCHAR(20) not null
-        CONSTRAINT CK_AppUser_UserRole CHECK (UserRole IN ('Student', 'Advisor', 'Alum'))
-);
-GO
-
-/*
-alter table AppUser
-    NOCHECK CONSTRAINT CK_AppUser_UserRole;
-
-alter table AppUser
-    CHECK CONSTRAINT CK_AppUser_UserRole;
-
-GO
-*/
-create table Student
-(
-    StudentID int identity(1,1) 
-        CONSTRAINT PK_Student primary key
-        CONSTRAINT FK_Student_AppUser foreign key references AppUser(AppUserID),
-    TotalCreditsCompleted int not null --cretisComplited += semesterCredits
-        CONSTRAINT DF_Student_CreditsCompleted default 0,
-    GraduationSemesterYear NVARCHAR(25) not null,
-    OverallGPA decimal(3,2) not null
-        CONSTRAINT DF_Student_OverallGPA default 0.00,
-    MajorGPA decimal(3,2) not null
-        CONSTRAINT DF_Student_MajorGPA default 0.00
-);
-GO
-
-*/
