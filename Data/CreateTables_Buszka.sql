@@ -160,15 +160,15 @@ CREATE TABLE Registration
     RegistrationID   INT IDENTITY(1,1) CONSTRAINT PK_Registration PRIMARY KEY,
     StudentID        INT NOT NULL,
     RegistrationDate DATETIME2(0) NOT NULL CONSTRAINT DF_Registration_Date DEFAULT (SYSUTCDATETIME()),
-    Semester         NVARCHAR(20) NOT NULL,
-    [Year]           INT NOT NULL,
+    RegistrationSemester         NVARCHAR(20) NOT NULL,
+    RegistrationYear           INT NOT NULL,
 
     CONSTRAINT FK_Registration_Student
         FOREIGN KEY (StudentID)
         REFERENCES Student(StudentID),
 
-    CONSTRAINT CK_Registration_Semester CHECK (Semester IN (N'Spring', N'Summer', N'Fall')),
-    CONSTRAINT UQ_Registration_Student_Term UNIQUE (StudentID, Semester, [Year])
+    CONSTRAINT CK_Registration_Semester CHECK (RegistrationSemester IN (N'Spring', N'Summer', N'Fall')),
+    CONSTRAINT UQ_Registration_Student_Term UNIQUE (StudentID, RegistrationSemester, RegistrationYear)
 );
 GO
 
@@ -177,8 +177,7 @@ CREATE TABLE RegistrationSection
     RegistrationSectionID INT IDENTITY(1,1) CONSTRAINT PK_RegistrationSection PRIMARY KEY,
     RegistrationID        INT NOT NULL,
     SectionID             INT NOT NULL,
-
-    LetterGrade           NVARCHAR(2) NULL,   -- typically NULL until completed
+    
     StudentRating         INT NULL,            -- 1 to 5, NULL if not rated
     StudentComments       NVARCHAR(1000) NULL,
 
@@ -190,6 +189,12 @@ CREATE TABLE RegistrationSection
     CONSTRAINT FK_RegSection_Section
         FOREIGN KEY (SectionID)
         REFERENCES Section(SectionID),
+
+    EnrollmentStatus NVARCHAR(20) not null
+        constraint CK_Enrollment_Status CHECK (EnrollmentStatus IN (N'Enrolled', N'Waitlisted', N'Dropped', N'Completed')),
+    
+    LetterGrade nchar(2) null
+        constraint CK_RegistrationSection_Grade CHECK (LetterGrade IN (N'A', N'B', N'C', N'D', N'F', N'W', null))
 
     CONSTRAINT UQ_RegSection UNIQUE (RegistrationID, SectionID),
 

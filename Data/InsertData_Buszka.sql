@@ -273,3 +273,55 @@ VALUES
 (8,  2, 20008, N'Fall', 2026, N'001', 22, 0),
 (9,  3, 20009, N'Fall', 2026, N'001', 12, 0),
 (10, 3, 20010, N'Fall', 2026, N'001', 50,  0);
+GO
+
+-- Prerequisite rows
+
+INSERT INTO CoursePrereq (CourseID, PrereqCourseID, MinGrade) VALUES
+(2, 1, N'C'),
+ (3, 1, N'C'),
+ (4, 2, N'C'),
+ (4, 3, N'C'),
+ (6, 2, N'B'),
+ (6, 3, N'C'),
+ (7, 4, N'B'),
+ (7, 6, N'B'),
+ (9, 7, N'B'),
+ (9, 8, N'B');
+
+go
+
+-- Registration rows
+
+insert into Registration (StudentID, RegistrationDate, RegistrationSemester, RegistrationYear)
+values
+(1, '2021-08-01', N'Fall', 2021),
+(1, '2022-01-01', N'Spring', 2022),
+(1, '2022-08-01', N'Fall', 2022),
+(1, '2023-01-01', N'Spring', 2023),
+(1, '2023-08-01', N'Fall', 2023),
+(1, '2024-01-01', N'Spring', 2024),
+(1, '2024-08-01', N'Fall', 2024),
+(1, '2025-01-01', N'Spring', 2025),
+(1, '2025-08-01', N'Fall', 2025),
+(2, '2024-08-01', N'Fall', 2024),
+(2, '2025-01-01', N'Spring', 2025),
+(2, '2025-08-01', N'Fall', 2025);
+
+GO
+
+-- RegistrationSection rows
+
+insert into RegistrationSection (RegistrationID, SectionID, EnrollmentStatus, LetterGrade)
+VALUES
+(2, 2, N'Completed', N'B'),
+(3, 3, N'Completed', N'C'),
+(4, 4, N'Completed', N'B'),
+(5, 5, N'Completed', N'A'),
+(6, 6, N'Completed', N'A'),
+(7, 7, N'Completed', N'B'),
+(8, 8, N'Completed', N'A'),
+(9, 9, N'Completed', N'A'),
+(10, 10, N'Completed', N'B'),
+(11, 11, N'Completed', N'C'),
+(12, 12, N'Completed', N'C');
