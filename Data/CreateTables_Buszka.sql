@@ -167,6 +167,7 @@ CREATE TABLE Registration
         FOREIGN KEY (StudentID)
         REFERENCES Student(StudentID),
 
+    CONSTRAINT CK_Registration_Semester CHECK (Semester IN (N'Spring', N'Summer', N'Fall')),
     CONSTRAINT UQ_Registration_Student_Term UNIQUE (StudentID, Semester, [Year])
 );
 GO
