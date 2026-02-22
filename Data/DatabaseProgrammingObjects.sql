@@ -3,8 +3,8 @@ GO
 -- 1. What are the sections of a specific course (optional entry) offered this semester (spring 2026)?
 CREATE PROCEDURE GetCourseSectionsBySemester
     @Semester   NVARCHAR(12) = N'Spring',
-    @Year       INT          = 2026,
-    @CourseID   INT          = NULL  -- optional filter by course
+    @Year       INT          = 2026,  --idk if this should be a default or not, but it is required or should be paramaetr :(
+    @CourseID   INT          = NULL  
 AS
 BEGIN
     SELECT  s.SectionID,
