@@ -1,34 +1,54 @@
+USE MIST460_RDB_Buszka;
+GO
 -- 1. What are the sections of a specific course (optional entry) offered this semester (spring 2026)?
 CREATE PROCEDURE GetCourseSectionsBySemester
-    @semester VARCHAR(20) = 'Spring',
-    @year INT = 2026,
-    @course_id VARCHAR(20) = NULL  -- optional filter by course
+    @Semester   NVARCHAR(12) = N'Spring',
+    @Year       INT          = 2026,
+    @CourseID   INT          = NULL  -- optional filter by course
 AS
 BEGIN
-    SELECT s.section_id, s.section_number, s.semester, s.year
-    FROM Sections s
-    WHERE s.semester = @semester
-      AND s.year = @year
-      AND (@course_id IS NULL OR s.course_id = @course_id);
+    SELECT  s.SectionID,
+            s.SectionNumber,
+            s.CRN,
+            s.SectionSemester,
+            s.SectionYear,
+            s.RemainingOpenings,
+            s.SectionAverageRating,
+            c.SubjectCode,
+            c.CourseNumber,
+            c.Title,
+            i.FirstName + ' ' + i.LastName AS InstructorName
+    FROM    Section s
+    JOIN    Course     c ON s.CourseID     = c.CourseID
+    JOIN    Instructor i ON s.InstructorID = i.InstructorID
+    WHERE   s.SectionSemester = @Semester
+      AND   s.SectionYear     = @Year
+      AND   (@CourseID IS NULL OR s.CourseID = @CourseID);
 END;
 GO
 -- Usage:
 -- All sections this semester:        EXEC GetCourseSectionsBySemester; GO
--- Specific course:                   EXEC GetCourseSectionsBySemester @course_id = 1; GO 
+-- Specific course:                   EXEC GetCourseSectionsBySemester @CourseID = 1; GO 
 -- Different semester:                EXEC GetCourseSectionsBySemester @semester = 'Fall', @year = 2025; GO
 
 
 -- 2. Wheat are the prequisites for a specific course (optional entry)?
 CREATE PROCEDURE GetCoursePrerequisites
-    @course_id VARCHAR(20)
+    @CourseID INT
 AS
 BEGIN
-    SELECT c.course_id, c.course_name, p.prerequisite_course_id
-    FROM Courses c
-    JOIN Prerequisites p ON c.course_id = p.course_id
-    WHERE c.course_id = @course_id;
+    SELECT  c.CourseID,
+            c.SubjectCode + ' ' + c.CourseNumber AS Course,
+            c.Title,
+            prereq.SubjectCode + ' ' + prereq.CourseNumber AS PrerequisiteCourse,
+            prereq.Title AS PrerequisiteTitle,
+            cp.MinGrade
+    FROM    Course as c
+    JOIN    CoursePrereq cp    ON c.CourseID = cp.CourseID
+    JOIN    Course prereq      ON cp.PrereqCourseID = prereq.CourseID
+    WHERE   c.CourseID = @CourseID;
 END;
 GO
 
 -- Usage:
--- EXEC GetCoursePrerequisites @course_id = 1; GO
+-- EXEC GetCoursePrerequisites @CourseID = 2; GO
