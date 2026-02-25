@@ -1,16 +1,12 @@
-use master
-
---create database MIST460_RDB_Buszka
-
-use MIST460_RDB_Buszka
-GO
+use MIST460_RDB_Buszka; 
 
 -- Order matters (Why?)
+
 IF OBJECT_ID('RegistrationSection') IS NOT NULL DROP TABLE RegistrationSection;
 IF OBJECT_ID('Registration') IS NOT NULL DROP TABLE Registration;
 IF OBJECT_ID('Section') IS NOT NULL DROP TABLE Section;
-IF OBJECT_ID('Instructor') IS NOT NULL DROP TABLE Instructor; 
-IF OBJECT_ID('CoursePrereq') IS NOT NULL DROP TABLE CoursePrereq;
+IF OBJECT_ID('Instructor') IS NOT NULL DROP TABLE Instructor;
+if OBJECT_ID('CoursePrerequisite') IS NOT NULL DROP TABLE CoursePrerequisite;
 IF OBJECT_ID('Course')         IS NOT NULL DROP TABLE Course;
 IF OBJECT_ID('Major')         IS NOT NULL DROP TABLE Major;
 IF OBJECT_ID('Alum')           IS NOT NULL DROP TABLE Alum;
@@ -18,8 +14,9 @@ IF OBJECT_ID('Advisor')     IS NOT NULL DROP TABLE Advisor;
 IF OBJECT_ID('Student')        IS NOT NULL DROP TABLE Student;
 IF OBJECT_ID('AppUser')        IS NOT NULL DROP TABLE AppUser;
 
-
-
+-- create CoursePrerequisite table
+-- create Registration
+-- create RegistrationSection
 
 
 GO
@@ -127,80 +124,49 @@ CREATE TABLE Section (
     CONSTRAINT CK_Section_Seats CHECK (RemainingOpenings >= 0),
     CONSTRAINT CK_CourseOffering_Avg CHECK (SectionAverageRating >= 0 AND SectionAverageRating <= 5)
 );
+
 GO
 
-
-CREATE TABLE CoursePrereq
-(
-    CoursePrereqID INT IDENTITY(1,1) CONSTRAINT PK_CoursePrereq PRIMARY KEY,
-
-    CourseID INT NOT NULL,
-
-    PrereqCourseID INT NOT NULL,
-
-    MinGrade NVARCHAR(2) NOT NULL,
-
-    CONSTRAINT FK_CoursePrereq_Course
-        FOREIGN KEY (CourseID)
-        REFERENCES Course(CourseID),
-
-    CONSTRAINT FK_CoursePrereq_PrereqCourse
-        FOREIGN KEY (PrereqCourseID)
-        REFERENCES Course(CourseID),
-
-    CONSTRAINT UQ_CoursePrereq UNIQUE (CourseID, PrereqCourseID),
-
-    CONSTRAINT CK_CoursePrereq_NotSelf CHECK (CourseID <> PrereqCourseID)
+create table CoursePrerequisite (
+    CoursePrerequisiteID int identity(1,1) not null
+        CONSTRAINT PK_CoursePrerequisite PRIMARY KEY,
+    CourseID int not null
+        CONSTRAINT FK_CP_Course FOREIGN KEY (CourseID) REFERENCES Course(CourseID),-- ON DELETE CASCADE,
+    PrerequisiteID int not null
+        CONSTRAINT FK_CP_PrerequisiteCourse FOREIGN KEY (PrerequisiteID) REFERENCES Course(CourseID),-- ON DELETE CASCADE,
+    constraint UK_CoursePrerequisite UNIQUE(CourseID, PrerequisiteID),
+    MinGradeRequired nchar(2) not null
+        constraint CK_CoursePrerequisite_Grade CHECK (MinGradeRequired IN (N'A', N'B', N'C', N'D'))  
 );
+
 GO
 
-
-CREATE TABLE Registration
-(
-    RegistrationID   INT IDENTITY(1,1) CONSTRAINT PK_Registration PRIMARY KEY,
-    StudentID        INT NOT NULL,
-    RegistrationDate DATETIME2(0) NOT NULL CONSTRAINT DF_Registration_Date DEFAULT (SYSUTCDATETIME()),
-    RegistrationSemester         NVARCHAR(20) NOT NULL,
-    RegistrationYear           INT NOT NULL,
-
-    CONSTRAINT FK_Registration_Student
-        FOREIGN KEY (StudentID)
-        REFERENCES Student(StudentID),
-
-    CONSTRAINT CK_Registration_Semester CHECK (RegistrationSemester IN (N'Spring', N'Summer', N'Fall')),
-    CONSTRAINT UQ_Registration_Student_Term UNIQUE (StudentID, RegistrationSemester, RegistrationYear)
+create table Registration (
+    RegistrationID int identity(1,1) not null
+        constraint PK_Registration primary key,
+    StudentID int not null
+        constraint FK_Registration_Student foreign key(StudentID) references Student(StudentID) on delete cascade,
+    RegistrationDate datetime not null default getdate(),
+    RegistrationSemester nvarchar(12) not null
+        constraint CK_Registration_Sem CHECK (RegistrationSemester IN (N'Spring',N'Summer',N'Fall',N'Winter')),
+    RegistrationYear int not null
+        constraint DF_Registration_Year DEFAULT (YEAR(getdate()))
 );
+
 GO
 
-CREATE TABLE RegistrationSection
-(
-    RegistrationSectionID INT IDENTITY(1,1) CONSTRAINT PK_RegistrationSection PRIMARY KEY,
-    RegistrationID        INT NOT NULL,
-    SectionID             INT NOT NULL,
-    
-    StudentRating         INT NULL,            -- 1 to 5, NULL if not rated
-    StudentComments       NVARCHAR(1000) NULL,
-
-    CONSTRAINT FK_RegSection_Registration
-        FOREIGN KEY (RegistrationID)
-        REFERENCES Registration(RegistrationID)
-        ON DELETE CASCADE,
-
-    CONSTRAINT FK_RegSection_Section
-        FOREIGN KEY (SectionID)
-        REFERENCES Section(SectionID),
-
+create table RegistrationSection (
+    RegistrationSectionID int identity(1,1) not null
+        constraint PK_RegistrationSection primary key,
+    RegistrationID int not null
+        constraint FK_RS_Registration foreign key(RegistrationID) references Registration(RegistrationID) on delete cascade,
+    SectionID int not null
+        constraint FK_RS_Section foreign key(SectionID) references Section(SectionID),
+    constraint UK_RegistrationSection UNIQUE(RegistrationID, SectionID),
     EnrollmentStatus NVARCHAR(20) not null
         constraint CK_Enrollment_Status CHECK (EnrollmentStatus IN (N'Enrolled', N'Waitlisted', N'Dropped', N'Completed')),
-    
     LetterGrade nchar(2) null
-        constraint CK_RegistrationSection_Grade CHECK (LetterGrade IN (N'A', N'B', N'C', N'D', N'F', N'W', null))
-
-    CONSTRAINT UQ_RegSection UNIQUE (RegistrationID, SectionID),
-
-    CONSTRAINT CK_RegSection_Rating CHECK (StudentRating IS NULL OR (StudentRating BETWEEN 1 AND 5))
+        constraint CK_RegistrationSection_Grade CHECK (LetterGrade IN (N'A', N'B', N'C', N'D', N'F', N'W', null)),
+    LastUpdate datetime not null default getdate()
 );
-GO
-
-
 
