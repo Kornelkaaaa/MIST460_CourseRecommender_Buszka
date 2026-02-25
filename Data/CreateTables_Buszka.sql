@@ -170,3 +170,4 @@ create table RegistrationSection (
     LastUpdate datetime not null default getdate()
 );
 
+go
