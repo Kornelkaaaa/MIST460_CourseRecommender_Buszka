@@ -77,7 +77,6 @@ go
 
 CREATE OR ALTER PROCEDURE dbo.GetCoursePrerequisites
 (
-    @CourseID     INT           = NULL,
     @SubjectCode  VARCHAR(10)   = NULL,
     @CourseNumber VARCHAR(10)   = NULL
 )
@@ -171,3 +170,5 @@ GO
  -- just make a lot of details and use other store procedure
 
  --azure account. set up an azure sql servier database, create me as user -> run objects, setects
+
+ --CTE -> Common Table Expression -> recursive CTE to find all prerequisites for a course (including indirect ones) and then check if the student has completed them with the required grades.
