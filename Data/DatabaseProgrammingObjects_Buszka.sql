@@ -172,3 +172,39 @@ GO
  --azure account. set up an azure sql servier database, create me as user -> run objects, setects
 
  --CTE -> Common Table Expression -> recursive CTE to find all prerequisites for a course (including indirect ones) and then check if the student has completed them with the required grades.
+
+
+ CREATE OR ALTER PROCEDURE procHasStudentMetPrerequisitesForCourse
+    @StudentID INT,
+    @SubjectCode VARCHAR(30),
+    @CourseNumber VARCHAR(30)
+AS
+BEGIN
+/*
+SELECT Prerequisites.SubjectCode, Prerequisites.CourseNumber, Prerequisites.MinGradeRequired, History.Grade
+FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
+LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
+    ON Prerequisites.SubjectCode = History.SubjectCode
+    AND Prerequisites.CourseNumber = History.CourseNumber
+    AND dbo.fnGradePointsFromLetterGrade(History.Grade)
+        >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired);
+*/
+SELECT Prerequisites.SubjectCode, Prerequisites.CourseNumber, Prerequisites.MinGradeRequired
+FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM fnGetStudentCourseHistory(@StudentID) AS History
+    WHERE Prerequisites.SubjectCode = History.SubjectCode
+        AND Prerequisites.CourseNumber = History.CourseNumber
+        AND dbo.fnGradePointsFromLetterGrade(History.Grade)
+            >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired)
+);
+END;
+GO
+
+----- Usage: 
+-- EXEC procHasStudentMetPrerequisitesForCourse @StudentID = 1, @SubjectCode = 'MIST', @CourseNumber = '460'; GO
+
+
+
+-- know the triggers 
