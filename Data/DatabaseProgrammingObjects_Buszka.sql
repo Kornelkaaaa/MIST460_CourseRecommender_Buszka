@@ -1,6 +1,29 @@
 USE MIST460_RDB_Buszka;
 GO
 
+IF OBJECT_ID('procGetCourseSectionsForSpecifiedCourse') is NOT NULL
+    DROP PROCEDURE procGetCourseSectionsForSpecifiedCourse;
+
+IF OBJECT_ID('fnGetSemesterFromMonth') is NOT NULL
+    DROP FUNCTION fnGetSemesterFromMonth;
+
+IF OBJECT_ID('procGetCoursePrerequisites') is NOT NULL
+    DROP PROCEDURE procGetCoursePrerequisites;
+
+IF OBJECT_ID('fnGetCoursePrerequisites') is NOT NULL
+    DROP FUNCTION fnGetCoursePrerequisites;
+
+IF OBJECT_ID('fnGetStudentCourseHistory') is NOT NULL
+    DROP FUNCTION fnGetStudentCourseHistory;
+
+IF OBJECT_ID('fnGradePointsFromLetterGrade') is NOT NULL
+    DROP FUNCTION fnGradePointsFromLetterGrade;
+
+IF OBJECT_ID('trgDecreaseSectionSeats') is NOT NULL
+    DROP TRIGGER trgDecreaseSectionSeats;
+
+GO
+
 -- Need days / times for sections, Location
 
 -- Database Programming Objects (Stored Procedures, User-Defined Functions UDF -> Scalar, Table-valued, Triggers)
@@ -8,7 +31,7 @@ GO
 -- 1. What are the sections of a specific course (optional entry) offered this semester (spring 2026)?
 
 -- scalar function to get a semester base on month number
-CREATE OR ALTER FUNCTION dbo.GetSemesterFromMonth()
+CREATE OR ALTER FUNCTION dbo.fnGetSemesterFromMonth()
 returns nvarchar(20)
 AS
 BEGIN
@@ -24,13 +47,13 @@ BEGIN
 
     return @Semester;
 END;
--- select dbo.GetSemesterFromMonth() as CurrentSemester;
+-- select dbo.fnGetSemesterFromMonth() as CurrentSemester;
 GO
 
 -- Inputs: SubjectCode and CourseNumber (Course)
 -- Conditions: Offered in Spring 2026 (Section)
 -- Output: SectionID, InstructorName, SeatsAvailable (Section + Instructor)
-create or alter procedure GetCourseSectionsForSpecifiedCourse
+create or alter procedure procGetCourseSectionsForSpecifiedCourse
 (
     @SubjectCode nvarchar(10) = null,
     @CourseNumber nvarchar(10) = null
@@ -75,46 +98,59 @@ go
 --Output: CourseID, CourseName, PrerequisiteCourseName, MinGradeRequired
 --Conditions: Looks up the course (C) and all prerequisite mappings in CoursePrerequisite (CP), Joins CoursePrerequisite.PrerequisiteID to Course.CourseID to get the full details of each prerequisite course, Filters results to only show prerequisites for the specified @CourseID.
 
-CREATE OR ALTER PROCEDURE dbo.GetCoursePrerequisites
+GO
+
+CREATE OR ALTER PROCEDURE dbo.procGetCoursePrerequisites
 (
-    @SubjectCode  VARCHAR(10)   = NULL,
-    @CourseNumber VARCHAR(10)   = NULL
+    @SubjectCode  VARCHAR(30)   = NULL,
+    @CourseNumber VARCHAR(30)  
 )
 as
 BEGIN
-    SELECT prereq.Title, prereq.SubjectCode, prereq.CourseNumber
-    FROM CoursePrerequisite AS cp
-    JOIN Course AS prereq ON cp.PrerequisiteID = prereq.CourseID
-    JOIN Course AS mainCourse ON cp.CourseID = mainCourse.CourseID
-    WHERE mainCourse.SubjectCode = ISNULL(@SubjectCode, mainCourse.SubjectCode)
-    AND mainCourse.CourseNumber = @CourseNumber
+    IF (@SubjectCode IS NULL AND @CourseNumber IS NOT NULL)
+    BEGIN
+        RAISERROR('Both @SubjectCode and @CourseNumber must be provided together, or both left NULL.', 16, 1); --I used AI to help me solve this edge case. 
+        RETURN;
+    END;
+    SELECT
+        prereq.Title, prereq.SubjectCode, prereq.CourseNumber, CP.MinGradeRequired
+            FROM CoursePrerequisite CP
+        JOIN Course MainCourse ON CP.CourseID = MainCourse.CourseID
+        JOIN Course prereq ON CP.PrerequisiteID = prereq.CourseID
+    WHERE
+        --(@SubjectCode IS NULL OR c.SubjectCode = @SubjectCode)
+        MainCourse.SubjectCode = IsNull(@SubjectCode, MainCourse.SubjectCode)
+        AND MainCourse.CourseNumber = @CourseNumber;
 END;
 GO
 
 -- Usage:
--- EXEC GetCoursePrerequisites @SubjectCode = 'MIST', @CourseNumber = '460'; GO
+-- EXEC procGetCoursePrerequisites @SubjectCode = 'MIST', @CourseNumber = '460'; GO
 
 CREATE or alter function fnGetCoursePrerequisites
 (
-    @SubjectCode  VARCHAR(10)   = NULL,
-    @CourseNumber VARCHAR(10)   = NULL
+    @SubjectCode  VARCHAR(30)   = NULL,
+    @CourseNumber VARCHAR(30)  
 )
 RETURNS @Prerequisites table
 (
-    Title NVARCHAR(200),
+    Title NVARCHAR(100),
     SubjectCode NVARCHAR(10),
-    CourseNumber NVARCHAR(10)
+    CourseNumber NVARCHAR(10),
+    MinGradeRequired NCHAR(2)
 )
 AS
 BEGIN
     insert into @Prerequisites
-    (Title, SubjectCode, CourseNumber)
-    select prereq.Title, prereq.SubjectCode, prereq.CourseNumber
-    from CoursePrerequisite AS cp
-    JOIN Course AS prereq ON cp.PrerequisiteID = prereq.CourseID
-    JOIN Course AS mainCourse ON cp.CourseID = mainCourse.CourseID
-    WHERE mainCourse.SubjectCode = ISNULL(@SubjectCode, mainCourse.SubjectCode)
-    AND mainCourse.CourseNumber = @CourseNumber
+    (Title, SubjectCode, CourseNumber, MinGradeRequired)
+    SELECT
+        prereq.Title, prereq.SubjectCode, prereq.CourseNumber, CP.MinGradeRequired
+            FROM CoursePrerequisite CP
+        JOIN Course MainCourse ON CP.CourseID = MainCourse.CourseID
+        JOIN Course prereq ON CP.PrerequisiteID = prereq.CourseID
+    WHERE
+        MainCourse.SubjectCode = IsNull(@SubjectCode, MainCourse.SubjectCode)
+        AND MainCourse.CourseNumber = @CourseNumber;
 
     return;
 END;
@@ -173,8 +209,61 @@ GO
 
  --CTE -> Common Table Expression -> recursive CTE to find all prerequisites for a course (including indirect ones) and then check if the student has completed them with the required grades.
 
+create or alter function fnGetStudentCourseHistory
+(
+    @StudentID int
+)
+returns @CourseHistory table
+(
+    SubjectCode nvarchar(10),
+    CourseNumber nvarchar(10),
+    Grade nchar(2)
+)
+AS
+BEGIN
+    insert into @CourseHistory
+    (SubjectCode, CourseNumber, Grade)
+    select 
+        C.SubjectCode, 
+        C.CourseNumber, 
+        RS.LetterGrade
+    from Registration R
+        join RegistrationSection RS on R.RegistrationID = RS.RegistrationID
+        join Section S on RS.SectionID = S.SectionID
+        join Course C on S.CourseID = C.CourseID
+    where R.StudentID = @StudentID;
 
- CREATE OR ALTER PROCEDURE procHasStudentMetPrerequisitesForCourse
+    return;
+END;
+-- select * from fnGetStudentCourseHistory(3);
+
+-- Encapsulate logic inside a stored procedure that 
+-- checks if the student has met the prerequisites for a course.
+go
+
+create or alter function fnGradePointsFromLetterGrade
+(
+	@LetterGrade nchar(2)
+)
+returns int
+as
+begin
+	declare @GradePoints int;
+	
+	set @GradePoints = case @LetterGrade
+		when 'A' then 4
+		when 'B' then 3
+		when 'C' then 2
+		when 'D' then 1
+		else 0
+	end;
+
+	return @GradePoints;
+end;
+
+GO
+
+CREATE OR ALTER PROCEDURE procHasStudentMetPrerequisitesForCourse
     @StudentID INT,
     @SubjectCode VARCHAR(30),
     @CourseNumber VARCHAR(30)
@@ -208,3 +297,32 @@ GO
 
 
 -- know the triggers 
+create or alter TRIGGER trgDecreaseSectionSeats
+ON RegistrationSection
+AFTER INSERT -- triggering event
+AS
+BEGIN -- trigger action -- logic to execute when the trigger is fired
+    -- Decrease the RemainingOpenings in the Section table by 1 for the corresponding SectionID
+    UPDATE Section
+    SET RemainingOpenings = RemainingOpenings - 1
+    FROM Section S
+    JOIN inserted I ON S.SectionID = I.SectionID;
+END;
+
+go
+
+
+create procedure procEnrollStudentInSection
+(
+    @RegistrationID int,
+    @SectionID int
+)
+as
+begin
+    insert into RegistrationSection (RegistrationID, SectionID)
+    values (@RegistrationID, @SectionID); -- this should trigger the decrease in RemainingOpenings for SectionID = 1
+end;
+-- EXEC procEnrollStudentInSection @RegistrationID = 1, @SectionID = 1;
+
+select *
+from Registration;
