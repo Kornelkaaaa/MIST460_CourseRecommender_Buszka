@@ -1,6 +1,10 @@
 USE MIST460_RDB_Buszka;
 GO
 
+
+IF OBJECT_ID('procRegisterStudent') is NOT NULL
+    DROP PROCEDURE procRegisterStudent;
+
 IF OBJECT_ID('procGetCourseSectionsForSpecifiedCourse') is NOT NULL
     DROP PROCEDURE procGetCourseSectionsForSpecifiedCourse;
 
@@ -12,6 +16,19 @@ IF OBJECT_ID('procGetCoursePrerequisites') is NOT NULL
 
 IF OBJECT_ID('fnGetCoursePrerequisites') is NOT NULL
     DROP FUNCTION fnGetCoursePrerequisites;
+
+IF OBJECT_ID('procHasStudentMetPrerequisitesForCourse') IS NOT NULL
+    DROP PROCEDURE dbo.procHasStudentMetPrerequisitesForCourse;
+
+IF OBJECT_ID('procEnrollStudentInSection') IS NOT NULL
+    DROP PROCEDURE procEnrollStudentInSection;
+
+IF OBJECT_ID('fnGetStudentCompletedCourses') is NOT NULL
+    DROP FUNCTION fnGetStudentCompletedCourses;
+
+-- NOTE : idk if we need this one
+IF OBJECT_ID('procGetStudentID') is NOT NULL
+    DROP PROCEDURE procGetStudentID;
 
 IF OBJECT_ID('fnGetStudentCourseHistory') is NOT NULL
     DROP FUNCTION fnGetStudentCourseHistory;
@@ -323,6 +340,85 @@ begin
     values (@RegistrationID, @SectionID); -- this should trigger the decrease in RemainingOpenings for SectionID = 1
 end;
 -- EXEC procEnrollStudentInSection @RegistrationID = 1, @SectionID = 1;
+go
 
-select *
-from Registration;
+/**
+select * from Section
+GO
+select * from Course
+GO
+select * from Student
+GO
+select * from AppUser
+go
+**/
+
+CREATE OR ALTER PROCEDURE procGetStudentID
+(
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @Email NVARCHAR(100),
+    @StudentID INT OUTPUT
+)
+AS
+BEGIN
+    SELECT @StudentID = S.StudentID
+    FROM Student S
+    INNER JOIN AppUser as A ON S.StudentID = A.AppUserID
+    WHERE A.FirstName = @FirstName
+      AND A.LastName = @LastName
+      AND A.Email = @Email
+      AND S.StudentID = A.AppUserID
+      AND UserRole = 'Student';
+END
+GO
+--select * from Registration;
+go
+-- EXEC procGetStudentID @FirstName = 'Michael', @LastName = 'Jordan', @Email ='mjordan@wvu.edu'
+-- 1. Create a stored procedure to register a student (procRegisterStudent) that takes student details as input and inserts a new record into the Student table. 
+CREATE or ALTER PROCEDURE dbo.procRegisterStudent
+(
+    @FirstName NVARCHAR(50),
+    @LastName NVARCHAR(50),
+    @Email NVARCHAR(100),
+    @RegistrationSemester NVARCHAR(12) = NULL,
+    @RegistrationYear INT = Null
+)
+AS
+BEGIN
+
+    DECLARE @StudentID INT;
+    -- i assumed that student do not know thier student id but idk is easy to change too
+    EXEC dbo.procGetStudentID 
+        @FirstName = @FirstName, 
+        @LastName = @LastName,
+        @Email = @Email,
+        @StudentID = @StudentID OUTPUT;
+
+    IF @StudentID IS NULL
+    BEGIN
+        RAISERROR('Student not found.', 16, 1);
+        RETURN;
+    END;
+
+    IF @RegistrationSemester IS NULL
+        SET @RegistrationSemester = dbo.fnGetSemesterFromMonth();
+
+    IF @RegistrationYear IS NULL
+        SET @RegistrationYear = YEAR(GETDATE());
+
+    INSERT INTO Registration (StudentID, RegistrationDate, RegistrationSemester, RegistrationYear)
+    VALUES (@StudentID, GETDATE(), @RegistrationSemester, @RegistrationYear)
+END
+GO
+-- EXEC dbo.procRegisterStudent @FirstName = 'Michael', @LastName = 'Jordan', @Email = 'mjordan@wvu.edu', @RegistrationSemester = 'Spring', @RegistrationYear = 2026;
+-- EXEC dbo.procRegisterStudent @FirstName = 'Alex', @LastName = 'Kim', @Email = 'akim@wvu.edu', @RegistrationSemester = 'Spring', @RegistrationYear = 2026;
+-- 
+
+--2. Insert Registration record / data for student 3 2026
+-- EXEC dbo.procRegisterStudent @FirstName = 'Alex', @LastName = 'Kim', @Email = 'akim@wvu.edu', @RegistrationSemester = 'Spring', @RegistrationYear = 2026;
+
+--3. Enroll student in a section of MIST 460 using the procEnrollStudentInSection procedure and verify that the RemainingOpenings for that section decreases by 1.
+-- EXEC procEnrollStudentInSection @RegistrationID = 16, @SectionID = 17;
+-- it is working :)
+
