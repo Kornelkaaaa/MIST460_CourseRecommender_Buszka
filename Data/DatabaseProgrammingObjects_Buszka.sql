@@ -91,7 +91,7 @@ begin
     from Section S  
         inner join Course C on S.CourseID = C.CourseID
         inner join Instructor I on S.InstructorID = I.InstructorID
-    where S.SectionSemester = dbo.GetSemesterFromMonth()
+    where S.SectionSemester = dbo.fnGetSemesterFromMonth()
     and S.SectionYear = Year(GetDate())
     and C.SubjectCode = ISNULL(@SubjectCode, C.SubjectCode)
     and C.CourseNumber = ISNULL(@CourseNumber, C.CourseNumber)
@@ -99,7 +99,7 @@ begin
 end;
 
 /*
-execute GetCourseSectionsForSpecifiedCourse
+execute procGetCourseSectionsForSpecifiedCourse
     @SubjectCode = 'MIST',
     @CourseNumber = '460';
 */
@@ -279,7 +279,9 @@ begin
 end;
 
 GO
-
+-- subquery - IN, NOT IN, EXISTS, NOT EXISTS
+-- IN non - correlated subquery - returns all the prerequisites for the course 
+-- EXIST correlated subquery - checks if there is a record in the student's course history that matches each prerequisite and meets the minimum grade requirement. If any prerequisite does not have a matching record in the student's course history, the procedure will return those prerequisites, indicating that the student has not met all the prerequisites for the course.
 CREATE OR ALTER PROCEDURE procHasStudentMetPrerequisitesForCourse
     @StudentID INT,
     @SubjectCode VARCHAR(30),
