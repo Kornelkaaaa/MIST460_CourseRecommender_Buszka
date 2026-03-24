@@ -1,3 +1,4 @@
+from typing import Optional
 from get_db_connection import get_db_connection
 
 import os
@@ -39,9 +40,9 @@ def test_get_db_connection():
   cursor = conn.cursor()
 
   cursor.execute("SELECT 1")
-
   result = cursor.fetchone()
 
+  assert result is not None, "Query returned no results"
   assert result[0] == 1, "Expected query result of 1"
 
   print("✅ Connection is live and queryable")

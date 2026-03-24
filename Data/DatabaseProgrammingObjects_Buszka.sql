@@ -130,7 +130,13 @@ BEGIN
         RETURN;
     END;
     SELECT
-        prereq.Title, prereq.SubjectCode, prereq.CourseNumber, CP.MinGradeRequired
+        prereq.Title 'MainCourseTitle', 
+        prereq.SubjectCode 'MainCourseSubjectCode', 
+        prereq.CourseNumber 'MainCourseNumber', 
+        prereq.Title 'PrerequisiteTitle',
+        prereq.SubjectCode 'PrerequisiteSubjectCode',
+        prereq.CourseNumber 'PrerequisiteCourseNumber',
+        CP.MinGradeRequired 'MinGradeRequired'
             FROM CoursePrerequisite CP
         JOIN Course MainCourse ON CP.CourseID = MainCourse.CourseID
         JOIN Course prereq ON CP.PrerequisiteID = prereq.CourseID
