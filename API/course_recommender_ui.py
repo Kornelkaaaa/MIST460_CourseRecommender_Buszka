@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import FastAPI
-from get_course_sections_for_specified_course import get_course_sections_for_specified_course
-from get_course_prerequisites import get_course_prerequisites
+from API.get_course_sections_for_specified_course_ui import get_course_sections_for_specified_course
+from get_course_prerequisites_ui import get_course_prerequisites
 
 #
 app = FastAPI()

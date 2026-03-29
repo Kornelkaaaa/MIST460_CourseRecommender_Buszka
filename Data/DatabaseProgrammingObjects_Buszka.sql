@@ -303,8 +303,14 @@ LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
     AND dbo.fnGradePointsFromLetterGrade(History.Grade)
         >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired);
 */
-SELECT Prerequisites.SubjectCode, Prerequisites.CourseNumber, Prerequisites.MinGradeRequired
+SELECT Prerequisites.SubjectCode, 
+    Prerequisites.CourseNumber, 
+    Prerequisites.MinGradeRequired as 'MinimumGradeRequired', 
+    IsNull(CAST(History.Grade AS NVARCHAR(20)), 'Not Completed') as 'StudentGrade'
 FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
+    LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
+            ON Prerequisites.SubjectCode = History.SubjectCode
+            AND Prerequisites.CourseNumber = History.CourseNumber
 WHERE NOT EXISTS (
     SELECT 1
     FROM fnGetStudentCourseHistory(@StudentID) AS History
@@ -430,3 +436,21 @@ GO
 -- EXEC procEnrollStudentInSection @RegistrationID = 16, @SectionID = 17;
 -- it is working :)
 
+create or alter procedure procValidateUser
+(@username nvarchar(320), @password nvarchar(100))
+as
+begin
+	select AppUserID, Firstname + ' ' + Lastname as Fullname
+	from AppUser
+	where Email = @username and
+		PasswordHash = CONVERT(VARBINARY(64), @password, 1)
+end;
+
+/*
+execute procValidateUser
+@username = 'mjordan@wvu.edu', 
+@password = '0x01';
+
+select AppUserID, Firstname, LastName, Email, PasswordHash
+from AppUser
+*/
