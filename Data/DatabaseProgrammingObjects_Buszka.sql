@@ -14,9 +14,6 @@ IF OBJECT_ID('fnGetSemesterFromMonth') is NOT NULL
 IF OBJECT_ID('procGetCoursePrerequisites') is NOT NULL
     DROP PROCEDURE procGetCoursePrerequisites;
 
-IF OBJECT_ID('fnGetCoursePrerequisites') is NOT NULL
-    DROP FUNCTION fnGetCoursePrerequisites;
-
 IF OBJECT_ID('procHasStudentMetPrerequisitesForCourse') IS NOT NULL
     DROP PROCEDURE dbo.procHasStudentMetPrerequisitesForCourse;
 
@@ -303,8 +300,8 @@ LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
     AND dbo.fnGradePointsFromLetterGrade(History.Grade)
         >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired);
 */
-SELECT Prerequisites.SubjectCode, 
-    Prerequisites.CourseNumber, 
+SELECT Prerequisites.SubjectCode 'PrerequisiteSubjectCode', 
+    Prerequisites.CourseNumber 'PrerequisiteCourseNumber', 
     Prerequisites.MinGradeRequired as 'MinimumGradeRequired', 
     IsNull(CAST(History.Grade AS NVARCHAR(20)), 'Not Completed') as 'StudentGrade'
 FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
@@ -440,7 +437,8 @@ create or alter procedure procValidateUser
 (@username nvarchar(320), @password nvarchar(100))
 as
 begin
-	select AppUserID, Firstname + ' ' + Lastname as Fullname
+	select AppUserID 'AppUserID', 
+    Firstname + ' ' + Lastname as FullName
 	from AppUser
 	where Email = @username and
 		PasswordHash = CONVERT(VARBINARY(64), @password, 1)
