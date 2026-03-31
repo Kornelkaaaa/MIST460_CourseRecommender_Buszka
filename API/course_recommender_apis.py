@@ -1,9 +1,9 @@
 from typing import Optional
 from fastapi import FastAPI
-from API.get_course_sections_for_specified_course import get_course_sections_for_specified_course
-from API.get_course_prerequisites import get_course_prerequisites
-from API.has_student_met_prerequisites_for_course import has_student_met_prerequisites_for_course
-from API.validate_user import validate_user
+from get_course_sections_for_specified_course import get_course_sections_for_specified_course
+from get_course_prerequisites import get_course_prerequisites
+from has_student_met_prerequisites_for_course import has_student_met_prerequisites_for_course
+from validate_user import validate_user
 
 #
 app = FastAPI()
@@ -19,7 +19,7 @@ def get_course_prerequisites_endpoint(subject_code: Optional[str] = None, course
     return get_course_prerequisites(subject_code, course_number)
 
 @app.get("/has_student_met_prerequisites_for_course/")
-def has_student_met_prerequisites_for_course_endpoint(student_id: str, subject_code:str, course_number: str):
+def has_student_met_prerequisites_for_course_endpoint(student_id: int, subject_code:str, course_number: str):
     return has_student_met_prerequisites_for_course(student_id, subject_code, course_number)
 
 @app.get("/validate_user/")

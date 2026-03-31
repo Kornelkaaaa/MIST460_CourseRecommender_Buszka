@@ -1,7 +1,6 @@
 import streamlit as st
-from get_course_sections_for_specified_course import get_course_sections_for_specified_course
-from get_course_prerequisites import get_course_prerequisites
-from has_student_met_prerequisites_for_course import has_student_met_prerequisites_for_course
+from get_course_sections_for_specified_course_ui import get_course_sections_for_specified_course_ui
+from get_course_prerequisites_ui import get_course_prerequisites_ui
 
 with st.sidebar:
     st.title("Course Recommender System")

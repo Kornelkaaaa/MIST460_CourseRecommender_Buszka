@@ -2,7 +2,7 @@ from typing import Optional
 from get_db_connection import get_db_connection
 
 def has_student_met_prerequisites_for_course(
-    student_id: str,
+    student_id: int,
     subject_code:str,
     course_number: str,
 ):
