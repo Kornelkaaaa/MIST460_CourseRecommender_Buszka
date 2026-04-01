@@ -318,10 +318,11 @@ WHERE NOT EXISTS (
 );
 END;
 GO
-
+-- double negative logic - NOT EXISTS to find any prerequisites that the student has not met. If the result set is empty, it means the student has met all prerequisites. If there are records returned, those represent the prerequisites that have not been met by the student.
 ----- Usage: 
 -- EXEC procHasStudentMetPrerequisitesForCourse @StudentID = 1, @SubjectCode = 'MIST', @CourseNumber = '460'; GO
-
+-- EXEC procHasStudentMetPrerequisitesForCourse @StudentID = 2, @SubjectCode = 'MIST', @CourseNumber = '460'; GO
+-- EXEC procHasStudentMetPrerequisitesForCourse @StudentID = 3, @SubjectCode = 'MIST', @CourseNumber = '460'; GO
 
 
 -- know the triggers 
@@ -438,7 +439,7 @@ create or alter procedure procValidateUser
 as
 begin
 	select AppUserID 'AppUserID', 
-    Firstname + ' ' + Lastname as FullName
+    Firstname + ' ' + Lastname as Fullname
 	from AppUser
 	where Email = @username and
 		PasswordHash = CONVERT(VARBINARY(64), @password, 1)

@@ -1,3 +1,4 @@
+import streamlit as st
 from get_db_connection import get_db_connection
 
 def validate_user(
@@ -13,7 +14,7 @@ def validate_user(
     results =[
         {
             "AppUserID": row.AppUserID,
-            "Fullname": row.FullName
+            "Fullname": row.Fullname
         }
         for row in rows
     ]
