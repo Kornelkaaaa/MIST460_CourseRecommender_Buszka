@@ -285,34 +285,51 @@ GO
 -- subquery - IN, NOT IN, EXISTS, NOT EXISTS
 -- IN non - correlated subquery - returns all the prerequisites for the course 
 -- EXIST correlated subquery - checks if there is a record in the student's course history that matches each prerequisite and meets the minimum grade requirement. If any prerequisite does not have a matching record in the student's course history, the procedure will return those prerequisites, indicating that the student has not met all the prerequisites for the course.
+-- =============================================
+-- Procedure: procHasStudentMetPrerequisitesForCourse
+-- Purpose: Checks if a student has completed all prerequisites
+--          for a specific course with the required minimum grade.
+--          Returns ONLY the prerequisites that have NOT been met.
+--          If no rows are returned, the student has met all prerequisites.
+-- Parameters:
+--    @StudentID    - The ID of the student to check
+--    @SubjectCode  - The subject code of the course (e.g., 'MIST')
+--    @CourseNumber  - The course number (e.g., '460')
 CREATE OR ALTER PROCEDURE procHasStudentMetPrerequisitesForCourse
     @StudentID INT,
     @SubjectCode VARCHAR(30),
     @CourseNumber VARCHAR(30)
 AS
 BEGIN
-/*
-SELECT Prerequisites.SubjectCode, Prerequisites.CourseNumber, Prerequisites.MinGradeRequired, History.Grade
-FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
-LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
-    ON Prerequisites.SubjectCode = History.SubjectCode
-    AND Prerequisites.CourseNumber = History.CourseNumber
-    AND dbo.fnGradePointsFromLetterGrade(History.Grade)
-        >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired);
-*/
-SELECT Prerequisites.SubjectCode 'PrerequisiteSubjectCode', 
+SELECT 
+-- Step 1: Get all prerequisites for the given course
+--         and LEFT JOIN with the student's course history
+--         to see what they have completed so far.
+    Prerequisites.SubjectCode 'PrerequisiteSubjectCode', 
     Prerequisites.CourseNumber 'PrerequisiteCourseNumber', 
-    Prerequisites.MinGradeRequired as 'MinimumGradeRequired', 
+    Prerequisites.MinGradeRequired as 'MinimumGradeRequired',
+    
+    -- If the student has no matching record, show 'Not Completed'
     IsNull(CAST(History.Grade AS NVARCHAR(20)), 'Not Completed') as 'StudentGrade'
+
 FROM fnGetCoursePrerequisites(@SubjectCode, @CourseNumber) AS Prerequisites
+
+-- LEFT JOIN keeps all prerequisites even if the student
+-- has not taken the course yet (History columns will be NULL)
     LEFT JOIN fnGetStudentCourseHistory(@StudentID) AS History
             ON Prerequisites.SubjectCode = History.SubjectCode
             AND Prerequisites.CourseNumber = History.CourseNumber
+
+-- Step 2: Use NOT EXISTS (correlated subquery) to filter out
+--         prerequisites the student has already passed.
+--         Only prerequisites that are NOT met will remain.
 WHERE NOT EXISTS (
     SELECT 1
     FROM fnGetStudentCourseHistory(@StudentID) AS History
+    -- Match the prerequisite course with the student's course history
     WHERE Prerequisites.SubjectCode = History.SubjectCode
         AND Prerequisites.CourseNumber = History.CourseNumber
+        -- Check if the student's grade meets or exceeds the minimum grade required for the prerequisite
         AND dbo.fnGradePointsFromLetterGrade(History.Grade)
             >= dbo.fnGradePointsFromLetterGrade(Prerequisites.MinGradeRequired)
 );
