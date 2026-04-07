@@ -473,10 +473,14 @@ from AppUser
 
 --- Logic for enrolling a student in a course section (Input -> Creating / Inserting; Updating -> Delete / Insert)
 -- Write down the steps you would take to enroll a student in a course section, including any checks you would perform
+
 -- Register a student for a semester - procRegisterStudent
+-- Before enrolling, validate ALL of the following:
+-- Check if section Exists & Has Available Seats
 -- Check course prerequisites - procGetCoursePrerequisites
--- Verify student has completed prerequisites with required grades - procHasStudentMetPrerequisitesForCourse
+-- Check for Duplicate Enrollment\
+-- Check time conflicts 
+-- Check credit hour limits
+-- check Student Status if is Active
 -- Enroll student in a course section (with automatic seat count update) - procEnrollStudentInSection + trgDecreaseSectionSeats
--- i think that we could do this on UI layer using the already created APIs but 
--- we could also create a stored procedure that encapsulates all the logic
--- I am not sure how to implement AI here haha 
+
