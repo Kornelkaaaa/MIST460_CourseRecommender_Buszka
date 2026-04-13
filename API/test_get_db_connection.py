@@ -58,3 +58,6 @@ def test_get_db_connection():
   print("✅ Connection closed cleanly")
 
   print("\n🎉 All tests passed!")
+
+if __name__ == "__main__":
+  test_get_db_connection()
