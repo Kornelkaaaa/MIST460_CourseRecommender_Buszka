@@ -11,7 +11,9 @@ def get_course_sections_for_specified_course(
         #cursor = conn.cursor() # Create a cursor object to execute SQL queries
         cursor = conn.cursor(as_dict=True)
         #cursor.execute("{CALL procGetCourseSectionsForSpecifiedCourse (?, ?)}", (subject_code, course_number)) # Execute the stored procedure with parameters
-        cursor.callproc("procGetCourseSectionsForSpecifiedCourse", (subject_code, course_number))
+        
+        #cursor.callproc("procGetCourseSectionsForSpecifiedCourse", (subject_code, course_number))
+        cursor.execute("EXEC procGetCourseSectionsForSpecifiedCourse %s, %s", (subject_code, course_number))
         #rows = cursor.fetchall() # Fetch all results
         
         try:

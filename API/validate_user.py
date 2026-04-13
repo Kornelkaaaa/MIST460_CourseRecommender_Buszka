@@ -10,7 +10,9 @@ def validate_user(
     #cursor = conn.cursor() # Create a cursor object to execute SQL queries
     cursor = conn.cursor(as_dict=True)
     #cursor.execute("{CALL procValidateUser (?, ?)}", (username, password)) # Execute the stored procedure with parameters
-    cursor.callproc("procValidateUser", (username, password))
+    
+    #cursor.callproc("procValidateUser", (username, password))
+    cursor.execute("EXEC procValidateUser %s, %s", (username, password))
     #rows = cursor.fetchall() # Fetch the result
     try:
         rows = cursor.fetchall()

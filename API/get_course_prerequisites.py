@@ -11,7 +11,8 @@ def get_course_prerequisites(
     #cursor = conn.cursor() # Create a cursor object to execute SQL queries
     cursor = conn.cursor(as_dict=True)
     #cursor.execute("{CALL procGetCoursePrerequisites (?, ?)}", (subject_code, course_number)) # Execute the stored procedure with parameters
-    cursor.callproc("procGetCoursePrerequisites", (subject_code, course_number))
+    #cursor.callproc("procGetCoursePrerequisites", (subject_code, course_number))
+    cursor.execute("EXEC procGetCoursePrerequisites %s, %s", (subject_code, course_number))
     try:
         rows = cursor.fetchall()
     except pymssql.Error:
