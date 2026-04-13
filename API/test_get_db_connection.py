@@ -1,9 +1,11 @@
-from typing import Optional
+
 from get_db_connection import get_db_connection
 
 import os
 
-import pyodbc
+#import pyodbc
+
+import pymssql
 
 from dotenv import load_dotenv
 
@@ -25,11 +27,11 @@ def test_get_db_connection():
 
 
 
-  # Test 2: Connection returns a pyodbc.Connection object
+  # Test 2: Connection returns a pymssql.Connection object
 
   conn = get_db_connection()
 
-  assert isinstance(conn, pyodbc.Connection), "Expected a pyodbc.Connection"
+  assert isinstance(conn, pymssql.Connection), "Expected a pymssql.Connection"
 
   print("✅ Connection object returned")
 
@@ -40,9 +42,11 @@ def test_get_db_connection():
   cursor = conn.cursor()
 
   cursor.execute("SELECT 1")
+
   result = cursor.fetchone()
 
-  assert result is not None, "Query returned no results"
+  assert result is not None, "Expected a result from query"
+
   assert result[0] == 1, "Expected query result of 1"
 
   print("✅ Connection is live and queryable")
@@ -54,9 +58,3 @@ def test_get_db_connection():
   print("✅ Connection closed cleanly")
 
   print("\n🎉 All tests passed!")
-
-
-
-if __name__ == "__main__":
-
-  test_get_db_connection()

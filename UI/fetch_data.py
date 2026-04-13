@@ -4,7 +4,7 @@ import pandas as pd
 from typing import Optional
 
 
-FASTAPI_BASE_URL = "http://localhost:8000" #Change this to the actual URL of your FastAPIserver URL
+FASTAPI_BASE_URL =  "https://mist460-api-buszka.azurewebsites.net"  #"http://localhost:8000" #Change this to the actual URL of your FastAPIserver URL
 
 
 def fetch_data(endpoint:str, input_params:dict, method: str ="GET") -> Optional[pd.DataFrame]:
