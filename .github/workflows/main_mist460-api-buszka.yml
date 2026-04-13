@@ -43,7 +43,7 @@ jobs:
           name: python-app
           path: |
             API/
-            !.venv//
+            !.venv/
 
       # 🚫 Opting Out of Oryx Build
       # If you prefer to disable the Oryx build process during deployment, follow these steps:

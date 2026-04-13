@@ -1,4 +1,3 @@
-
 from get_db_connection import get_db_connection
 
 import os
@@ -45,8 +44,6 @@ def test_get_db_connection():
 
   result = cursor.fetchone()
 
-  assert result is not None, "Expected a result from query"
-
   assert result[0] == 1, "Expected query result of 1"
 
   print("✅ Connection is live and queryable")
@@ -59,5 +56,8 @@ def test_get_db_connection():
 
   print("\n🎉 All tests passed!")
 
+
+
 if __name__ == "__main__":
+
   test_get_db_connection()
