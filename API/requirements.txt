@@ -4,3 +4,7 @@ uvicorn[standard]
 python-dotenv
 pymssql
 #pyodbc
+langchain
+langchain-text-splitters
+openai
+pyodbc
