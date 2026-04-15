@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-
 def test_get_db_connection():
 
   # Test 1: Check env vars are loaded
