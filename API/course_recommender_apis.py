@@ -1,6 +1,5 @@
 from typing import Optional
 from fastapi import FastAPI
-from API.get_course_prerequisites import get_course_prerequisites
 from get_course_sections_for_specified_course import get_course_sections_for_specified_course
 from get_course_prerequisites import get_course_prerequisites
 from has_student_met_prerequisites_for_course import has_student_met_prerequisites_for_course
