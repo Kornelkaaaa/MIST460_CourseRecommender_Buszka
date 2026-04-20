@@ -50,7 +50,7 @@ GO
 CREATE OR ALTER PROCEDURE procGetAllCourses
 AS
 BEGIN
-    SELECT SubjectCode, CourseNumber, Title
+    SELECT CourseID, SubjectCode, CourseNumber, Title, CourseDescription
     FROM Course;
 END;
 GO
@@ -68,6 +68,7 @@ BEGIN
 END;
 GO
 
+-- select * from chunks
 
 -- Need days / times for sections, Location
 

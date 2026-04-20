@@ -115,6 +115,8 @@ CREATE TABLE Chunks (
         CONSTRAINT FK_Chunks_Course FOREIGN KEY (CourseID) REFERENCES Course(CourseID)
 );
 
+
+--select * from chunks
 GO
 create table Instructor (
     InstructorID int identity(1,1) not null,

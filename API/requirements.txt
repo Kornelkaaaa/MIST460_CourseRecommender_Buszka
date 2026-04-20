@@ -7,4 +7,5 @@ pymssql
 langchain
 langchain-text-splitters
 openai
+langchain-openai
 pyodbc
