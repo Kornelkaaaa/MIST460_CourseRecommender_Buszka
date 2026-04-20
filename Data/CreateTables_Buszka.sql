@@ -2,6 +2,7 @@ use MIST460_RDB_Buszka;
 
 -- Order matters (Why?)
 
+GO
 
 IF OBJECT_ID('RegistrationSection') IS NOT NULL DROP TABLE RegistrationSection;
 IF OBJECT_ID('Registration') IS NOT NULL DROP TABLE Registration;
