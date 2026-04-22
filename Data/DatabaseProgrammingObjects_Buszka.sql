@@ -44,9 +44,58 @@ IF OBJECT_ID('procInsertChunk') IS NOT NULL
 
 IF OBJECT_ID('procValidateUser') IS NOT NULL
     DROP PROCEDURE procValidateUser;
+GO
 
+CREATE or ALTER PROCEDURE procGetAllJobs
+AS
+BEGIN
+    SELECT JobTitle, JobDescription
+    FROM Job;
+END;
+GO
+
+CREATE or alter PROCEDURE procGetCourseRecommendationsForJobDescription
+(
+    @JobDescription vector(1536),
+    @semester nvarchar(12) = null,
+    @year int = null
+)
+as
+BEGIN
+    SELECT courseID, Evidence, Distance, title, subjectCode, courseNumber, courseDescription, SectionID, CRN, SectionNumber, SectionSemester, SectionYear, RemainingOpenings
+    FROM fnGetCourseRecommendationsForSelectedJob(@JobDescription) AS Recommendations
+    JOIN Course C on Recommendations.CourseID = C.CourseID
+    join Section S on C.CourseID = S.CourseID
+    where S.SectionSemester = IsNull(@semester, S.SectionSemester)
+    and S.SectionYear = IsNull(@year, S.SectionYear)
+    order by Distance ASC;
+END;
 
 GO
+CREATE or ALTER PROCEDURE fnGetCourseRecommendationsForSelectedJob
+(
+    @JobDescriptionEmbedding VECTOR(1536)
+)
+RETURNS @RecommendedCourses TABLE
+(
+    CourseID INT,
+    Evidence NVARCHAR(MAX),
+    Distance FLOAT
+)
+AS
+BEGIN
+    INSERT into @RecommendedCourses (CourseID, Evidence, Distance)
+    select top 5 
+        CourseID, 
+        MIN(CourseChunk) as Evidence,
+        MIN(VectorDistance('cosine', @JobDescriptionEmbedding, ChunkEmbedding)) as Distance -- smaller distance means more similar
+    from Chunks
+    GROUP by CourseID
+    ORDER by Distance ASC; -- order by similarity (most similar first)
+END;
+GO
+
+
 CREATE OR ALTER PROCEDURE procGetAllCourses
 AS
 BEGIN
