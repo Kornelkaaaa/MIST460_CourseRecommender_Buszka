@@ -72,7 +72,7 @@ BEGIN
 END;
 
 GO
-CREATE or ALTER PROCEDURE fnGetCourseRecommendationsForSelectedJob
+CREATE or ALTER FUNCTION fnGetCourseRecommendationsForSelectedJob
 (
     @JobDescriptionEmbedding VECTOR(1536)
 )
@@ -92,6 +92,8 @@ BEGIN
     from Chunks
     GROUP by CourseID
     ORDER by Distance ASC; -- order by similarity (most similar first)
+
+    return;
 END;
 GO
 
