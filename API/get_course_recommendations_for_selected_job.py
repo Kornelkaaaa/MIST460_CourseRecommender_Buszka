@@ -35,5 +35,5 @@ def get_course_recommendations_for_selected_job(job_description: str) -> str:
 #   get_course_recommendations_for_selected_job(sample_job_description)
 
 #the secoud openAI model is a generatie model
-generative_model = OpenAIEmbeddings(model="gpt-3.5-turbo") #or gpt-4
+generative_model = OpenAIEmbeddings(model="gpt-4o-mini", temperature=0) #or gpt-4
     # Generate a human-readable response based on the semantic search results

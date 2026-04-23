@@ -44,6 +44,22 @@ IF OBJECT_ID('procInsertChunk') IS NOT NULL
 
 IF OBJECT_ID('procValidateUser') IS NOT NULL
     DROP PROCEDURE procValidateUser;
+
+If OBJECT_ID('procGetAllJobs') is NOT NULL
+    DROP PROCEDURE procGetAllJobs;
+
+IF OBJECT_ID('fnGetCourseRecommendationsForSelectedJob') IS NOT NULL
+    DROP FUNCTION fnGetCourseRecommendationsForSelectedJob;
+
+IF OBJECT_ID('procGetCourseRecommendationsForJobDescription') IS NOT NULL
+    DROP PROCEDURE procGetCourseRecommendationsForJobDescription;
+
+IF OBJECT_ID('fnGradePointsFromLetterGrade') IS NOT NULL
+    DROP FUNCTION fnGradePointsFromLetterGrade;
+
+if OBJECT_ID('fnGetCoursePrerequisites') is NOT NULL
+    DROP FUNCTION fnGetCoursePrerequisites;
+
 GO
 
 CREATE or ALTER PROCEDURE procGetAllJobs
@@ -70,6 +86,7 @@ BEGIN
     and S.SectionYear = IsNull(@year, S.SectionYear)
     order by Distance ASC;
 END;
+-- professor have diffrent but lowkey this is the same funcionality
 
 GO
 CREATE or ALTER FUNCTION fnGetCourseRecommendationsForSelectedJob
@@ -90,11 +107,18 @@ BEGIN
         MIN(CourseChunk) as Evidence,
         MIN(VectorDistance('cosine', @JobDescriptionEmbedding, ChunkEmbedding)) as Distance -- smaller distance means more similar
     from Chunks
-    GROUP by CourseID
+    GROUP by CourseID -- we need min bc group by course and we want the most similar chunk as evidence for each course, so we take the min distance and corresponding chunk for each course
     ORDER by Distance ASC; -- order by similarity (most similar first)
 
     return;
 END;
+
+/*
+declare @embedding vector(1536);
+set @embedding = (select top 1 ChunkEmbedding from Chunks);
+SELECT * FROM dbo.fnGetCourseRecommendationsForSelectedJob(@embedding);
+*/
+
 GO
 
 
