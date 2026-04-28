@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import FastAPI
-from API.get_course_recommendations_for_selected_job import get_course_recommendations_for_selected_job
+from get_course_recommendations_for_selected_job import get_course_recommendations_for_selected_job
 from get_course_sections_for_specified_course import get_course_sections_for_specified_course
 from get_course_prerequisites import get_course_prerequisites
 from has_student_met_prerequisites_for_course import has_student_met_prerequisites_for_course
@@ -30,6 +30,8 @@ def validate_user_endpoint(username: str, password: str):
 @app.get("/get_course_recommendations_for_selected_job/")
 def get_course_recommendations_for_selected_job_endpoint(job_description: str):
     return get_course_recommendations_for_selected_job(job_description)
+
+
 
 """"
 HOW IT WORKS:

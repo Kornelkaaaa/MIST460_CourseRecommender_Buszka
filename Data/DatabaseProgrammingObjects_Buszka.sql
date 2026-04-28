@@ -60,6 +60,9 @@ IF OBJECT_ID('fnGradePointsFromLetterGrade') IS NOT NULL
 if OBJECT_ID('fnGetCoursePrerequisites') is NOT NULL
     DROP FUNCTION fnGetCoursePrerequisites;
 
+if OBJECT_ID('procGetCourseRecommendationsForSelectedJob') is not NULL
+    DROP PROCEDURE procGetCourseRecommendationsForSelectedJob;
+
 GO
 
 CREATE or ALTER PROCEDURE procGetAllJobs
@@ -70,7 +73,7 @@ BEGIN
 END;
 GO
 
-CREATE or alter PROCEDURE procGetCourseRecommendationsForJobDescription
+CREATE or alter PROCEDURE procGetCourseRecommendationsForSelectedJob
 (
     @JobDescription vector(1536),
     @semester nvarchar(12) = null,
@@ -78,9 +81,9 @@ CREATE or alter PROCEDURE procGetCourseRecommendationsForJobDescription
 )
 as
 BEGIN
-    SELECT courseID, Evidence, Distance, title, subjectCode, courseNumber, courseDescription, SectionID, CRN, SectionNumber, SectionSemester, SectionYear, RemainingOpenings
-    FROM fnGetCourseRecommendationsForSelectedJob(@JobDescription) AS Recommendations
-    JOIN Course C on Recommendations.CourseID = C.CourseID
+    SELECT c.courseID, Evidence, Distance, Title, SubjectCode, CourseNumber, CourseDescription, SectionID, CRN, SectionNumber, SectionSemester, SectionYear, RemainingOpenings
+    FROM dbo.fnGetCourseRecommendationsForSelectedJob(@JobDescription) AS F
+    JOIN Course C on F.CourseID = C.CourseID
     join Section S on C.CourseID = S.CourseID
     where S.SectionSemester = IsNull(@semester, S.SectionSemester)
     and S.SectionYear = IsNull(@year, S.SectionYear)
@@ -105,9 +108,10 @@ BEGIN
     select top 5 
         CourseID, 
         MIN(CourseChunk) as Evidence,
-        MIN(VectorDistance('cosine', @JobDescriptionEmbedding, ChunkEmbedding)) as Distance -- smaller distance means more similar
+        MIN(Vector_Distance('cosine', @JobDescriptionEmbedding, ChunkEmbedding)) as Distance -- smaller distance means more similar
     from Chunks
     GROUP by CourseID -- we need min bc group by course and we want the most similar chunk as evidence for each course, so we take the min distance and corresponding chunk for each course
+    HAVING MIN(Vector_Distance('cosine', @JobDescriptionEmbedding, ChunkEmbedding)) <= 0.6 -- threshold for similarity, we can adjust this based on testing and desired number of recommendations
     ORDER by Distance ASC; -- order by similarity (most similar first)
 
     return;
@@ -116,7 +120,7 @@ END;
 /*
 declare @embedding vector(1536);
 set @embedding = (select top 1 ChunkEmbedding from Chunks);
-SELECT * FROM dbo.fnGetCourseRecommendationsForSelectedJob(@embedding);
+SELECT * FROM dbo.fnGetCourseRecommendationsForJob(@embedding);
 */
 
 GO

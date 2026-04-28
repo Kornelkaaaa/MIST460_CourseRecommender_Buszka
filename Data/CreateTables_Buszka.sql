@@ -3,7 +3,8 @@ use MIST460_RDB_Buszka;
 -- Order matters (Why?)
 
 GO
-
+--SELECT @@VERSION;
+--Go
 IF OBJECT_ID('RegistrationSection') IS NOT NULL DROP TABLE RegistrationSection;
 IF OBJECT_ID('Registration') IS NOT NULL DROP TABLE Registration;
 IF OBJECT_ID('Section') IS NOT NULL DROP TABLE Section;
