@@ -36,6 +36,9 @@ def get_course_recommendations_for_selected_job_endpoint(job_description: str):
 def get_all_jobs_endpoint():
     return get_all_jobs()
 
+@app.get("/")
+def root():
+    return {"message": "Welcome to the Course Recommender API! Use the available endpoints to get course recommendations based on job descriptions, check prerequisites, and more."}
 
 """"
 HOW IT WORKS:

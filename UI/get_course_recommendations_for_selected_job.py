@@ -22,9 +22,15 @@ def get_course_recommendations_for_selected_job_ui():
     parameters_for_course_recommendations["job_description"] = st.text_area("Job description", value=selected_job['JobDescription'], height=200)
 
     if st.button("Get Course Recommendations"):
-        recomendations_data_response = fetch_text("get_course_recommendations_for_selected_job/", parameters_for_course_recommendations)
+
+        #recomendations_data_response = fetch_text("get_course_recommendations_for_selected_job/", parameters_for_course_recommendations)
         
-        if recomendations_data_response:
+        #if recomendations_data_response:
+        
+        with st.spinner("Generating course recommendations... this can take 10-20 seconds."):
+            recomendations_data_response = fetch_text("get_course_recommendations_for_selected_job/", parameters_for_course_recommendations)
+
+        if recomendations_data_response and recomendations_data_response.strip():
             st.subheader("Recommended Courses:")
             st.markdown(recomendations_data_response, unsafe_allow_html=True)  # Render the HTML content in the response
         else:
