@@ -7,6 +7,7 @@ st.set_page_config(
 )
 
 from kawaii_style import apply_kawaii_style
+from home_ui import home_ui
 from get_course_sections_for_specified_course_ui import get_course_sections_for_specified_course_ui
 from get_course_prerequisites_ui import get_course_prerequisites_ui
 from has_student_met_prerequisites_for_course_ui import has_student_met_prerequisites_for_course_ui
@@ -22,6 +23,7 @@ with st.sidebar:
     api_end_point = st.selectbox(
         "🎀 Select a functionality:",
         [
+            "🏠 Home",
             "🔐 Validate User Credentials",
             "📚 Get Course Sections for Specified Course",
             "🌷 Get Course Prerequisites",
@@ -32,7 +34,9 @@ with st.sidebar:
 
     st.markdown("---")
 
-if api_end_point == "📚 Get Course Sections for Specified Course":
+if api_end_point == "🏠 Home":
+    home_ui()
+elif api_end_point == "📚 Get Course Sections for Specified Course":
     get_course_sections_for_specified_course_ui()
 elif api_end_point == "🌷 Get Course Prerequisites":
     get_course_prerequisites_ui()

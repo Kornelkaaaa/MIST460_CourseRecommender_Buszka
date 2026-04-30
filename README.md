@@ -4,6 +4,8 @@ A super cute WVU course recommendation app that pairs a FastAPI backend with a S
 
 The frontend has a kawaii pastel theme — pink/lavender gradients, rounded chunky buttons, dashed borders, balloon confetti on success, and emojis sprinkled across every screen.
 
+🌸 **Live app:** [mist460-ui-buszka.streamlit.app](https://mist460-ui-buszka.streamlit.app/)
+
 ## ✨ Features
 
 - 🔐 **Validate user credentials** — student login check
@@ -105,13 +107,10 @@ The UI opens at `http://localhost:8501` and loads the kawaii theme automatically
 
 ## ☁️ Deployment
 
-The API is deployed to Azure App Service at:
+- **Frontend (Streamlit Community Cloud):** [https://mist460-ui-buszka.streamlit.app/](https://mist460-ui-buszka.streamlit.app/)
+- **Backend (Azure App Service):** `https://mist460-api-buszka.azurewebsites.net`
 
-```
-https://mist460-api-buszka.azurewebsites.net
-```
-
-To use the deployed API, set `FASTAPI_BASE_URL` in `UI/fetch_data.py` to that URL.
+To use the deployed API locally, set `FASTAPI_BASE_URL` in `UI/fetch_data.py` to the Azure URL.
 
 ## 🎀 Customizing the Kawaii Theme
 
