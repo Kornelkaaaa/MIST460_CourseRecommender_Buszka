@@ -13,6 +13,10 @@ def get_course_recommendations_for_selected_job_ui():
 
     df = fetch_data("get_all_jobs/", parameters_for_jobs_dropdown)
 
+    if df is None or df.empty:
+        st.warning("😿 Couldn't load jobs right now. Please refresh the page in a moment~")
+        st.stop()
+
     selected_job = st.selectbox(
         "🌸 Select a job",
         options=df.to_dict(orient="records"),
